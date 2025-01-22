@@ -11,3 +11,4 @@ service CatalogService {
     @readonly
     entity Languages           as projection on sap.common.Languages;
 }
+ 
