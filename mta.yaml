@@ -4,11 +4,12 @@ version: 1.0.0
 description: "A simple CAP project."
 parameters:
   enable-parallel-deployments: true
+  deploy_mode: html5-repo
 build-parameters:
   before-all:
     - builder: custom
       commands:
-        - npm ci
+        - npm install
         - npx cds build --production
 modules:
   - name: ProjetoDia22-srv
@@ -35,9 +36,41 @@ modules:
     requires:
       - name: ProjetoDia22-db
 
+  - name: ProjetoDia22-app-deployer
+    type: com.sap.application.content
+    path: gen
+    requires:
+      - name: ProjetoDia22-html5-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: app/
+      requires:
+        - name: ProjetoDia22project_header
+          artifacts:
+            - project_header.zip
+          target-path: app/
+
+  - name: ProjetoDia22project_header
+    type: html5
+    path: app/project_header
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+
 resources:
   - name: ProjetoDia22-db
     type: com.sap.xs.hdi-container
     parameters:
       service: hana
       service-plan: hdi-shared
+  - name: ProjetoDia22-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
