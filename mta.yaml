@@ -12,6 +12,38 @@ build-parameters:
         - npm install
         - npx cds build --production
 modules:
+  #Conteúdo app
+  - name: ProjetoDia22-app-content
+    type: com.sap.application.content
+    build-parameters:
+      no-source: true
+    requires:
+      - name: ProjetoDia22-html5-repo-host
+        parameters:
+          service-key:
+            name: ProjetoDia22-html5-repo-host-key
+      - name: ProjetoDia22-auth
+        parameters:
+          service-key:
+            name: ProjetoDia22-auth-key
+      - name: ProjetoDia22-destination
+        parameters:
+          content-target: true
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: ProjetoDia22-html5-repo-host
+              ServiceInstanceName: ProjetoDia22-html5-srv
+              ServiceKeyName: ProjetoDia22-html5-repo-host-key
+              sap.cloud.service: bootcamp.cap
+            - Name: ProjetoDia22-auth
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: ProjetoDia22-auth
+              ServiceKeyName: ProjetoDia22-repo-auth-key
+              sap.cloud.service: bootcamp.cap
+
   - name: ProjetoDia22-srv
     type: nodejs
     path: gen/srv
@@ -27,6 +59,8 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: ProjetoDia22-db
+      - name: ProjetoDia22-auth
+      - name: ProjetoDia22-destination
 
   - name: ProjetoDia22-db-deployer
     type: hdb
@@ -38,7 +72,8 @@ modules:
 
   - name: ProjetoDia22-app-deployer
     type: com.sap.application.content
-    path: gen
+    # path: gen
+    path: .
     requires:
       - name: ProjetoDia22-html5-repo-host
         parameters:
@@ -49,7 +84,8 @@ modules:
         - name: ProjetoDia22project_header
           artifacts:
             - project_header.zip
-          target-path: app/
+          # target-path: app/
+          target-path: resources/
 
   - name: ProjetoDia22project_header
     type: html5
@@ -58,8 +94,9 @@ modules:
       build-result: dist
       builder: custom
       commands:
-        - npm ci
-        - npm run build
+        - npm install
+        # - npm run build
+        - npm run build:cf
       supported-platforms:
         []
 
@@ -74,3 +111,41 @@ resources:
     parameters:
       service: html5-apps-repo
       service-plan: app-host
+      service-name: ProjetoDia22-html5-srv
+
+  - name: ProjetoDia22-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: ProjetoDia22-${org}-${space}
+        tenant-mode: dedicated
+
+  #Destination para acesso do Cap
+  - name: ProjetoDia22-destination
+    type: org.cloudfoundry.managed-service
+    requires:
+      - name: srv-api
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            destinations:
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: https://ui5.sap.com
+              - Authentication: NoAuthentication
+                Name: bootcamp-cap
+                ProxyType: Internet
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
+                Type: HTTP
+                URL: https://~{srv-api/srv-url}
+            existing_destinations_policy: update
+      service: destination
+      service-plan: lite

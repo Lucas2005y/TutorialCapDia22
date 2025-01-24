@@ -24,6 +24,19 @@
           "odataVersion": "4.0"
         }
       }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "BOOTCAMP-display": {
+          "semanticObject": "BOOTCAMP",
+          "action": "display",
+          "title": "{{AppTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
     }
   },
   "sap.ui": {
@@ -160,5 +173,10 @@
   "sap.fiori": {
     "registrationIds": [],
     "archeType": "transactional"
+  },
+  "sap.cloud": {
+        "public": true,
+        "service": "bootcamp.cap"
   }
+
 }

@@ -12,9 +12,16 @@ builder:
       - "/test/**"
       - "/localService/**"
   customTasks:
+    - name: webide-extension-task-updateManifestJson
+      afterTask: replaceVersion
+      configuration:
+        appFolder: webapp
+        destDir: dist
+
     - name: ui5-task-zipper
       afterTask: generateVersionInfo
       configuration:
         archiveName: project_header
         additionalFiles:
           - xs-app.json
+
