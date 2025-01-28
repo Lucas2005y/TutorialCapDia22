@@ -51,12 +51,15 @@ modules:
       buildpack: nodejs_buildpack
       readiness-health-check-type: http
       readiness-health-check-http-endpoint: /health
+      routes:
+        - route: ${org}-${space}-bootcamp-cap.${default-domain}
     build-parameters:
       builder: npm
     provides:
       - name: srv-api # required by consumers of CAP services (e.g. approuter)
         properties:
-          srv-url: ${default-url}
+          # srv-url: ${default-url}
+          srv-url: ${routes/0/route}
     requires:
       - name: ProjetoDia22-db
       - name: ProjetoDia22-auth
@@ -79,7 +82,8 @@ modules:
         parameters:
           content-target: true
     build-parameters:
-      build-result: app/
+      # build-result: app/
+      build-result: resources
       requires:
         - name: ProjetoDia22project_header
           artifacts:
@@ -106,6 +110,7 @@ resources:
     parameters:
       service: hana
       service-plan: hdi-shared
+      
   - name: ProjetoDia22-html5-repo-host
     type: org.cloudfoundry.managed-service
     parameters:
